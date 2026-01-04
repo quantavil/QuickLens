@@ -407,6 +407,14 @@ fun ResultSheet(
                                     webView.loadUrl(url)
                                 }
                             },
+                            onReset = { webView ->
+                                // Proper WebView cleanup to prevent memory leaks
+                                webView.stopLoading()
+                                webView.loadUrl("about:blank")
+                                webView.clearHistory()
+                                webView.removeAllViews()
+                                webView.destroy()
+                            }
                         )
                             
                         // Visual Swipe Indicators - Small and at the edges

@@ -7,13 +7,14 @@ import java.io.File
 import java.io.FileOutputStream
 
 object BitmapRepository {
-    private const val FILE_NAME = "screenshot_cache.png"
+    private const val FILE_NAME = "screenshot_cache.jpg"
     
     fun saveBitmap(context: Context, bitmap: Bitmap) {
         try {
             val file = File(context.cacheDir, FILE_NAME)
             FileOutputStream(file).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                // Use JPEG 85% for faster I/O and smaller file size
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
             }
         } catch (e: Exception) {
             e.printStackTrace()

@@ -112,6 +112,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 // Save a smaller thumbnail
                 val thumb = Bitmap.createScaledBitmap(bitmap, 200, (200 * bitmap.height / bitmap.width), true)
                 thumb.compress(Bitmap.CompressFormat.JPEG, 80, out)
+                // Recycle intermediate bitmap to prevent memory leak
+                if (thumb != bitmap) thumb.recycle()
             }
 
             val history = SearchHistory(
@@ -151,6 +153,13 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     fun clearError() {
         _errorMessage.value = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Recycle bitmap to prevent memory leak
+        lastBitmap?.recycle()
+        lastBitmap = null
     }
 
     fun restoreSearch(imageUrl: String) {

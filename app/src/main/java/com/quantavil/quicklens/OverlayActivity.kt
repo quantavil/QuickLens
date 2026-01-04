@@ -79,6 +79,9 @@ class OverlayActivity : ComponentActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
+        // Recycle screenshot bitmap to prevent memory leak
+        screenshotBitmap.value?.recycle()
+        screenshotBitmap.value = null
         // Notify accessibility service that overlay is closed
         QuickLensAccessibilityService.onOverlayClosed()
         if (isFinishing) {

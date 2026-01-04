@@ -121,6 +121,8 @@ object ImageSearchUploader {
          val resized = ImageUtils.resizeBitmap(bitmap, 1280)
          val outputStream = ByteArrayOutputStream()
          resized.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+         // Recycle intermediate bitmap to prevent memory leak
+         if (resized != bitmap) resized.recycle()
          outputStream.toByteArray()
     }
 }
