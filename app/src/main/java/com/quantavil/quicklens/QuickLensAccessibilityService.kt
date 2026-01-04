@@ -26,6 +26,7 @@ class QuickLensAccessibilityService : AccessibilityService() {
     private var windowManager: WindowManager? = null
     private var triggerView: View? = null
     private val executor: Executor = Executors.newSingleThreadExecutor()
+    private var lastCaptureTime: Long = 0
     
     private var bubbleView: View? = null
     private val uiPreferences by lazy { com.quantavil.quicklens.utils.UIPreferences(this) }
@@ -187,8 +188,12 @@ class QuickLensAccessibilityService : AccessibilityService() {
     }
 
     private fun performCapture() {
-        // Prevent duplicate triggers when overlay is already active
-        if (isOverlayActive) return
+        // Debounce: Prevent accidental double-triggers (1000ms cooldown)
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastCaptureTime < 1000) {
+            return
+        }
+        lastCaptureTime = currentTime
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             // Haptic Feedback (Crisp Click)

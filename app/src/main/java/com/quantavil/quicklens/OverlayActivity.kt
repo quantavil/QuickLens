@@ -70,6 +70,8 @@ class OverlayActivity : ComponentActivity() {
             val bitmap = BitmapRepository.loadBitmap(this@OverlayActivity)
             withContext(kotlinx.coroutines.Dispatchers.Main) {
                 if (bitmap != null) {
+                    // Recycle old bitmap if it exists to prevent memory leak
+                    screenshotBitmap.value?.recycle()
                     screenshotBitmap.value = bitmap
                 }
                 isLoading.value = false
