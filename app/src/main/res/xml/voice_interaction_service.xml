@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sessionService="com.quantavil.quicklens.QuickLensSessionService"
+    android:recognitionService="com.quantavil.quicklens.QuickLensRecognitionService"
+    android:settingsActivity="com.quantavil.quicklens.MainActivity"
+    android:supportsAssist="true"
+    android:supportsLocalInteraction="true" />
