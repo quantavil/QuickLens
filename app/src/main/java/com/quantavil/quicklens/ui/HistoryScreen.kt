@@ -11,8 +11,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Delete
+import com.quantavil.quicklens.ui.theme.AppIcons
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -125,7 +125,7 @@ fun HistoryScreen(
                                     )
                                 } else {
                                     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.secondary), contentAlignment = Alignment.Center) {
-                                        Icon(Icons.Default.Image, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondary)
+                                        Icon(AppIcons.Image, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondary)
                                     }
                                 }
                             }
@@ -153,7 +153,7 @@ fun HistoryScreen(
                                 clipboard.setPrimaryClip(clip)
                                 android.widget.Toast.makeText(context, "Link copied", android.widget.Toast.LENGTH_SHORT).show()
                             }) {
-                                Icon(Icons.Default.ContentCopy, contentDescription = "Copy Link", tint = MaterialTheme.colorScheme.primary)
+                                Icon(AppIcons.ContentCopy, contentDescription = "Copy Link", tint = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }

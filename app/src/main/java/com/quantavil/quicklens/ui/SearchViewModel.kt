@@ -43,6 +43,8 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private var lastBitmap: Bitmap? = null
 
     fun onImageCropped(bitmap: Bitmap, context: Context?) {
+        // Recycle previous bitmap to prevent memory leak
+        lastBitmap?.recycle()
         lastBitmap = bitmap
         performUpload(bitmap)
     }

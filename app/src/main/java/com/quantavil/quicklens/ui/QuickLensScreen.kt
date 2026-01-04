@@ -108,7 +108,8 @@ fun QuickLensScreen(
                      viewModel = viewModel,
                      isExpanded = scaffoldState.bottomSheetState.currentValue == SheetValue.Expanded,
                      isDarkTheme = isDarkTheme,
-                     openLinksExternally = uiPreferences.isOpenLinksExternally()
+                     openLinksExternally = uiPreferences.isOpenLinksExternally(),
+                     isDesktopMode = uiPreferences.isDesktopMode()
                  )
              }
         },

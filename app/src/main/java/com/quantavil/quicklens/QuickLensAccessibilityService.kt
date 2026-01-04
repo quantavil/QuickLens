@@ -211,19 +211,19 @@ class QuickLensAccessibilityService : AccessibilityService() {
                 executor,
                 object : TakeScreenshotCallback {
                     override fun onSuccess(screenshot: ScreenshotResult) {
+                        var hardwareBuffer: android.hardware.HardwareBuffer? = null
                         try {
-                            val hardwareBuffer = screenshot.hardwareBuffer
+                            hardwareBuffer = screenshot.hardwareBuffer
                             val colorSpace = screenshot.colorSpace
                             
                             val bitmap = Bitmap.wrapHardwareBuffer(hardwareBuffer, colorSpace)
                             if (bitmap == null) {
-                                hardwareBuffer.close()
                                 return
                             }
 
                             // Copy to software bitmap
                             val copy = bitmap.copy(Bitmap.Config.ARGB_8888, false)
-                            hardwareBuffer.close() // Close buffer after copy
+                            // Buffer will be closed in finally block
 
                             if (copy == null) {
                                 return
@@ -237,6 +237,8 @@ class QuickLensAccessibilityService : AccessibilityService() {
                             
                         } catch (e: Exception) {
                             e.printStackTrace()
+                        } finally {
+                            hardwareBuffer?.close()
                         }
                     }
 

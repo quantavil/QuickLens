@@ -11,7 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.rounded.History
+
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.foundation.verticalScroll
@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import com.quantavil.quicklens.ui.theme.QuickLensTheme
+import com.quantavil.quicklens.ui.theme.AppIcons
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -102,7 +103,7 @@ fun SetupScreen(onOpenHistory: () -> Unit) {
                 title = { Text("") }, 
                 actions = {
                     IconButton(onClick = onOpenHistory) {
-                        Icon(Icons.Default.History, contentDescription = "History", tint = MaterialTheme.colorScheme.primary)
+                        Icon(AppIcons.History, contentDescription = "History", tint = MaterialTheme.colorScheme.primary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -157,7 +158,7 @@ fun SetupScreen(onOpenHistory: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CheckCircle,
+                            imageVector = AppIcons.CheckCircle,
                             contentDescription = "Granted",
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp)
@@ -195,7 +196,7 @@ fun SetupScreen(onOpenHistory: () -> Unit) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Accessibility,
+                            imageVector = AppIcons.Accessibility,
                             contentDescription = null,
                             modifier = Modifier.size(24.dp),
                             tint = MaterialTheme.colorScheme.onErrorContainer
@@ -250,7 +251,7 @@ fun SetupScreen(onOpenHistory: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        imageVector = if (isDefaultAssistant) Icons.Default.CheckCircle else Icons.Default.Assistant,
+                        imageVector = if (isDefaultAssistant) AppIcons.CheckCircle else AppIcons.Assistant,
                         contentDescription = null,
                         tint = if (isDefaultAssistant) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(24.dp)
@@ -270,7 +271,7 @@ fun SetupScreen(onOpenHistory: () -> Unit) {
                     }
                     if (!isDefaultAssistant) {
                         Icon(
-                            imageVector = Icons.Default.ChevronRight,
+                            imageVector = AppIcons.ChevronRight,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )

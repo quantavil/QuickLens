@@ -53,10 +53,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.ErrorOutline
+import com.quantavil.quicklens.ui.theme.AppIcons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -70,6 +69,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.activity.compose.BackHandler
+import androidx.compose.runtime.DisposableEffect
 
 @Composable
 fun ResultSheet(
@@ -77,6 +77,7 @@ fun ResultSheet(
     isExpanded: Boolean,
     isDarkTheme: Boolean = isSystemInDarkTheme(),
     openLinksExternally: Boolean = false,
+    isDesktopMode: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val searchEngines = SearchEngine.entries.toTypedArray()
@@ -94,6 +95,30 @@ fun ResultSheet(
     var canGoBack by remember { mutableStateOf(false) }
     // We need a way to trigger goBack on the active WebView
     var webViewRef by remember { mutableStateOf<WebView?>(null) }
+    
+    // Track all WebView instances for proper cleanup
+    val webViewInstances = remember { mutableMapOf<SearchEngine, WebView>() }
+    
+    // Cleanup WebViews when composable is disposed
+    DisposableEffect(Unit) {
+        onDispose {
+            webViewInstances.values.forEach { webView ->
+                try {
+                    webView.stopLoading()
+                    webView.loadUrl("about:blank")
+                    webView.clearHistory()
+                    webView.clearCache(true)
+                    webView.clearFormData()
+                    (webView.parent as? ViewGroup)?.removeView(webView)
+                    webView.removeAllViews()
+                    webView.destroy()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            webViewInstances.clear()
+        }
+    }
     
     // Intercept Back Press
     BackHandler(enabled = isExpanded && canGoBack) {
@@ -173,7 +198,7 @@ fun ResultSheet(
                         android.widget.Toast.makeText(context, "Link copied", android.widget.Toast.LENGTH_SHORT).show()
                     }
                 }, enabled = currentUrl != null) {
-                    Icon(Icons.Default.ContentCopy, contentDescription = "Copy Link", tint = MaterialTheme.colorScheme.primary)
+                    Icon(AppIcons.ContentCopy, contentDescription = "Copy Link", tint = MaterialTheme.colorScheme.primary)
                 }
                 
                 IconButton(onClick = {
@@ -208,7 +233,7 @@ fun ResultSheet(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
-                        Icons.Default.ErrorOutline, 
+                        AppIcons.ErrorOutline, 
                         contentDescription = null, 
                         modifier = Modifier.size(48.dp),
                         tint = MaterialTheme.colorScheme.error
@@ -318,7 +343,11 @@ fun ResultSheet(
                                         javaScriptEnabled = true
                                         domStorageEnabled = true
                                         cacheMode = WebSettings.LOAD_DEFAULT
-                                        userAgentString = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                                        userAgentString = if (isDesktopMode) {
+                                            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                                        } else {
+                                            "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+                                        }
                                         
                                         // Fix for Dark Mode
                                         if (WebViewFeature.isFeatureSupported(WebViewFeature.ALGORITHMIC_DARKENING)) {
@@ -356,7 +385,7 @@ fun ResultSheet(
                                             val clickedUrl = request?.url?.toString() ?: return false
                                             
                                             // List of allowed domains (search engines)
-                                            val allowedDomains = listOf(
+                                            val allowedDomains = setOf(
                                                 "lens.google.com",
                                                 "google.com", 
                                                 "bing.com", 
@@ -364,7 +393,10 @@ fun ResultSheet(
                                                 "tineye.com"
                                             )
                                             
-                                            val isAllowed = allowedDomains.any { clickedUrl.contains(it, ignoreCase = true) }
+                                            val host = android.net.Uri.parse(clickedUrl).host?.lowercase()
+                                            val isAllowed = host != null && allowedDomains.any { domain -> 
+                                                host == domain || host.endsWith(".$domain")
+                                            }
                                             
                                             // Only open externally if preference is enabled AND it's not a search engine
                                             if (openLinksExternally && !isAllowed) {
@@ -383,6 +415,9 @@ fun ResultSheet(
                                     }
                                     
                                     loadUrl(url)
+                                    
+                                    // Register WebView for cleanup tracking
+                                    webViewInstances[engine] = this
                                 }
                             },
                             update = { webView ->
@@ -412,6 +447,7 @@ fun ResultSheet(
                                 webView.stopLoading()
                                 webView.loadUrl("about:blank")
                                 webView.clearHistory()
+                                webView.clearCache(true) // Clear disk cache to prevent buildup
                                 webView.removeAllViews()
                                 webView.destroy()
                             }

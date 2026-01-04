@@ -79,6 +79,13 @@ class OverlayActivity : ComponentActivity() {
         }
     }
     
+    override fun onStop() {
+        super.onStop()
+        if (!isFinishing) {
+            finish()
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         // Recycle screenshot bitmap to prevent memory leak
