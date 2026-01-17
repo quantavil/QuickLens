@@ -226,34 +226,24 @@ class QuickLensAccessibilityService : AccessibilityService() {
     override fun onInterrupt() {}
 
     companion object {
-        private var instance: QuickLensAccessibilityService? = null
         var isOverlayActive: Boolean = false
         const val ACTION_TRIGGER_CAPTURE = "com.quantavil.quicklens.ACTION_TRIGGER_CAPTURE"
-
-        fun triggerCapture() {
-            instance?.performCapture()
-        }
         
         fun onOverlayClosed() {
             isOverlayActive = false
         }
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        instance = this
-    }
+
 
     override fun onDestroy() {
         super.onDestroy()
-        instance = null
         try {
             unregisterReceiver(captureReceiver)
         } catch (e: Exception) {
             // Receiver may not be registered
         }
         prefs.unregisterOnSharedPreferenceChangeListener(prefsListener)
-        // triggerView cleanup removed
         hideBubble()
     }
 }

@@ -48,7 +48,7 @@ class UIPreferences(context: Context) {
     }
     
     fun isBubbleEnabled(): Boolean {
-        return prefs.getBoolean(KEY_BUBBLE_ENABLED, true)
+        return prefs.getBoolean(KEY_BUBBLE_ENABLED, false)
     }
     
     fun setBubbleEnabled(isEnabled: Boolean) {
