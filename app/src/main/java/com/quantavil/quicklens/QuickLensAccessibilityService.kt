@@ -11,10 +11,11 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.Display
-import android.view.GestureDetector
+
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import com.quantavil.quicklens.data.BitmapRepository
@@ -24,13 +25,16 @@ import java.util.concurrent.Executors
 class QuickLensAccessibilityService : AccessibilityService() {
 
     private var windowManager: WindowManager? = null
-    private var triggerView: View? = null
+    // triggerView removed as per user request
     private val executor: Executor = Executors.newSingleThreadExecutor()
     private var lastCaptureTime: Long = 0
     
     private var bubbleView: View? = null
     private val uiPreferences by lazy { com.quantavil.quicklens.utils.UIPreferences(this) }
     private val prefs by lazy { getSharedPreferences("ui_prefs", Context.MODE_PRIVATE) }
+    
+    // System touch slop for proper click/drag detection (DRY: used by both bubble and trigger)
+    private val touchSlop: Int by lazy { ViewConfiguration.get(this).scaledTouchSlop }
     
     private val prefsListener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key == "bubble_enabled") {
@@ -49,7 +53,9 @@ class QuickLensAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        setupTriggerOverlay()
+        // Initialize WindowManager directly since trigger overlay is removed
+        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        
         prefs.registerOnSharedPreferenceChangeListener(prefsListener)
         updateBubbleState()
         
@@ -110,7 +116,10 @@ class QuickLensAccessibilityService : AccessibilityService() {
                         true
                     }
                     MotionEvent.ACTION_UP -> {
-                        if (Math.abs(event.rawX - initialTouchX) < 10 && Math.abs(event.rawY - initialTouchY) < 10) {
+                        // Use system touchSlop for reliable click detection across devices
+                        val dx = kotlin.math.abs(event.rawX - initialTouchX)
+                        val dy = kotlin.math.abs(event.rawY - initialTouchY)
+                        if (dx < touchSlop && dy < touchSlop) {
                             performCapture()
                         }
                         true
@@ -138,54 +147,7 @@ class QuickLensAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun setupTriggerOverlay() {
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        triggerView = View(this)
 
-        val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            100, // Height of the status bar trigger area (approx)
-            WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.TRANSLUCENT
-        )
-        params.gravity = Gravity.TOP
-
-        val gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
-            override fun onDoubleTap(e: MotionEvent): Boolean {
-                performCapture()
-                return true
-            }
-            
-            override fun onFling(
-                e1: MotionEvent?,
-                e2: MotionEvent,
-                velocityX: Float,
-                velocityY: Float
-            ): Boolean {
-                // Detect downward swipe to open notifications
-                if (e1 != null && velocityY > 1000) { // Swipe down with sufficient velocity
-                    performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)
-                    return true
-                }
-                return false
-            }
-        })
-
-        triggerView?.setOnTouchListener { _, event ->
-            gestureDetector.onTouchEvent(event)
-            true 
-        }
-
-        try {
-            windowManager?.addView(triggerView, params)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
 
     private fun performCapture() {
         // Debounce: Prevent accidental double-triggers (1000ms cooldown)
@@ -291,9 +253,7 @@ class QuickLensAccessibilityService : AccessibilityService() {
             // Receiver may not be registered
         }
         prefs.unregisterOnSharedPreferenceChangeListener(prefsListener)
-        if (triggerView != null && windowManager != null) {
-            windowManager?.removeView(triggerView)
-        }
+        // triggerView cleanup removed
         hideBubble()
     }
 }

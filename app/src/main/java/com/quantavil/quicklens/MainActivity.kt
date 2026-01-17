@@ -136,113 +136,70 @@ fun SetupScreen(onOpenHistory: () -> Unit) {
             
             Spacer(modifier = Modifier.height(32.dp))
 
-            // 2. REQUIRED: Accessibility Service
+            // 2. REQUIRED: Permissions & Setup
             Text(
                 text = "REQUIRED",
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isAccessibilityEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.primary, // Always primary as these are setup steps
                 modifier = Modifier.align(Alignment.Start).padding(bottom = 8.dp)
             )
             
-            if (isAccessibilityEnabled) {
-                // Granted State
-                Card(
-                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-                    ),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.CheckCircle,
-                            contentDescription = "Granted",
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = "Accessibility Service Active",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                            Text(
-                                text = "Double tap status bar to launch QuickLens",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                            )
-                        }
-                    }
-                }
-            } else {
-                 // Action Needed State
-                Card(
-                    onClick = {
+            // Accessibility Service Card
+            val accessibilityColor = if (isAccessibilityEnabled) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.errorContainer
+            val accessibilityContentColor = if (isAccessibilityEnabled) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
+            
+            Card(
+                onClick = {
+                    if (!isAccessibilityEnabled) {
                         val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                         context.startActivity(intent)
-                    },
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    ),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    }
+                },
+                colors = CardDefaults.cardColors(containerColor = accessibilityColor),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = AppIcons.Accessibility,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                            tint = MaterialTheme.colorScheme.onErrorContainer
+                    Icon(
+                        imageVector = if (isAccessibilityEnabled) AppIcons.CheckCircle else AppIcons.Accessibility,
+                        contentDescription = null,
+                        tint = accessibilityContentColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = if (isAccessibilityEnabled) "Accessibility Service Active" else "Enable Accessibility",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = accessibilityContentColor
                         )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(
-                                text = "Enable Accessibility",
-                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                                color = MaterialTheme.colorScheme.onErrorContainer
-                            )
-                             Text(
-                                text = "To do its job properly, the app needs this permission.\n" +
-                                        "Tap allow and we’re good to go! \uD83D\uDC4D",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f)
-                            )
-                        }
+                         Text(
+                            text = "Required to capture screen content",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = accessibilityContentColor.copy(alpha = 0.8f)
+                        )
                     }
                 }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // 3. OPTIONAL: Default Assistant
+
+            // Default Assistant Card (Now Required)
             val componentName = android.content.ComponentName(context, QuickLensSessionService::class.java)
             val isDefaultAssistant = Settings.Secure.getString(context.contentResolver, "voice_interaction_service") == componentName.flattenToString()
             
-            Text(
-                text = "OPTIONAL",
-                style = MaterialTheme.typography.labelSmall,
-                color = if (isDefaultAssistant) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
-                modifier = Modifier.align(Alignment.Start).padding(bottom = 8.dp)
-            )
+            val assistantColor = if (isDefaultAssistant) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.errorContainer
+            val assistantContentColor = if (isDefaultAssistant) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onErrorContainer
 
             Card(
                 onClick = {
                     val intent = Intent(Settings.ACTION_VOICE_INPUT_SETTINGS)
                     context.startActivity(intent)
                 },
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isDefaultAssistant) 
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-                    else 
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                ),
+                colors = CardDefaults.cardColors(containerColor = assistantColor),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -253,27 +210,27 @@ fun SetupScreen(onOpenHistory: () -> Unit) {
                     Icon(
                         imageVector = if (isDefaultAssistant) AppIcons.CheckCircle else AppIcons.Assistant,
                         contentDescription = null,
-                        tint = if (isDefaultAssistant) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = assistantContentColor,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = if (isDefaultAssistant) "Default Assistant Active" else "Set as Default Assistant",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (isDefaultAssistant) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                            text = if (isDefaultAssistant) "Trigger Enabled" else "Enable Trigger (Default Assistant)",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = assistantContentColor
                         )
                         Text(
-                            text = "Long-press home checking to trigger QuickLens",
+                            text = "Long-press home / Swipe diagonal to launch",
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (isDefaultAssistant) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurfaceVariant
+                            color = assistantContentColor.copy(alpha = 0.8f)
                         )
                     }
                     if (!isDefaultAssistant) {
                         Icon(
                             imageVector = AppIcons.ChevronRight,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = assistantContentColor
                         )
                     }
                 }
